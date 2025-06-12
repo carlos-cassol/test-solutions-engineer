@@ -88,7 +88,7 @@ Each service requires a `.env` file at its root. These files store sensitive con
 (example connection string)
 DATABASE_URL="postgresql://postgres:root@localhost:5432/CarrierData"
 
-# Loadboard credentials (used for browser automation)
+# Loadboard credentials (used for browser automation. Or leave a empty string to use debug credentials)
 LANDSTAR_USERNAME="your_landstar_username"
 LANDSTAR_PASSWORD="your_landstar_password"
 
@@ -115,6 +115,8 @@ OPENAI_API_KEY="your_openai_api_key"
 ## 6. Setup Instructions
 
 ```bash 
+git clone https://github.com/carlos-cassol/test-solutions-engineer.git
+
 *Open bash in main folder*
 
 # Automation Service:
