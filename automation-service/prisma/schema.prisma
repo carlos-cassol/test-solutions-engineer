@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Insight {
+  id        String        @id @default(uuid())
+  summary   String
+  createdAt DateTime      @default(now())
+  carriers  CarrierInfo[]
+
+  @@map("insights")
+}
+
+model CarrierInfo {
+  id               String   @id @default(uuid())
+  pickupDateTime   DateTime
+  deliveryDateTime DateTime
+  origin           String
+  destination      String
+  carrierPay       Decimal  @default(0)
+  miles            Decimal  @default(0)
+  weight           Decimal  @default(0)
+  commodityCode    String
+  createdAt        DateTime @default(now())
+  insightId        String
+  insight          Insight  @relation(fields: [insightId], references: [id])
+
+  @@map("carrier_info")
+}
+
+model DriverInfo {
+  id          String @id @default(uuid())
+  name        String
+  phone       String
+  companyName String
+
+  @@map("driver_info")
+}

@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: CarrierData
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  gpt-service:
+    build:
+      context: ./gpt-service
+    container_name: gpt-service
+    ports:
+      - "3000:3000"
+    environment:
+      - OPENAI_API_KEY=your-api-key-here
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3000/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  automation-service:
+    build:
+      context: ./automation-service
+    container_name: automation-service
+    ports:
+      - "3001:3001"
+    depends_on:
+      gpt-service:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://postgres:root@postgres:5432/CarrierData
+      - PUPPETEER_CACHE_DIR=/app/.cache/puppeteer
+    volumes:
+      - ./puppeteer-cache:/app/.cache/puppeteer
+      - ./automation-service/logs:/app/logs
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3001/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

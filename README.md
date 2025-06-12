@@ -1,154 +1,143 @@
-![Alt Text](https://billor.us/images/logo.svg)
+# Carrier Data Automation & Summarization System
 
-# Billor Coding Challenge: Solutions Engineer
+## 1. Microservices Architecture
 
-This assessment is designed to evaluate advanced skills in microservices, containerization, browser automation, LLM integration (GPT Compute Preview), data modeling, and documentation in English.
+### Service Structure
+| Service               | Description                                  | Port  |
+|-----------------------|----------------------------------------------|-------|
+| `automation-service`  | Browser automation & data extraction         | 3001  |
+| `gpt-service`         | OpenAI GPT summarization endpoint            | 3000  |
 
-**Delivery format:** Git repository (public or private) containing:
-
-* `automation-service/` folder
-* `gpt-service/` folder
-* Docker configuration (`Dockerfile`s and `docker-compose.yml`)
-* Migration scripts and SQL
-* README.md with setup instructions and examples
-* Tests and mocks
-
----
-
-## 1. Microservices Architecture with Docker
-
-**Objective:** Evaluate distributed system design, containerization, and orchestration.
-
-**Task:**
-
-* Define two services using **Docker Compose**:
-
-  1. **`automation-service`** (Node.js/NestJS): responsible for running data extraction automations via Puppeteer.
-  2. **`gpt-service`** (Node.js/NestJS): exposes a `/summarize-loads` endpoint that accepts JSON payloads of load data and returns a summary using GPT Compute Preview.
-
-* Both services must share:
-
-  * An internal network for communication
-  * Volumes for logs
-  * Secure environment variables (API keys, credentials)
-
-**Deliverables:**
-
-* `docker-compose.yml`
-* `automation-service/Dockerfile` and `gpt-service/Dockerfile`
-* README with build, `docker-compose up/down`, and health check instructions
-
-**Evaluation Criteria:**
-
-* Proper use of `depends_on` and `healthcheck`
-* Optimized images (Alpine base, multi-stage builds)
-* Service isolation and configuration
+**Communication:** HTTP POST requests between services.
 
 ---
 
 ## 2. Data Extraction Automation
+**Location:** `automation-service`
 
-**Objective:** Test advanced browser automation and service integration.
+### Workflow
+1. Authenticates with:
+   - JB Hunt Loadboard (`https://www.jbhunt.com`)
+   - Landstar Online (`https://www.landstaronline.com`)
+2. Extracts:
+   - 20 most recent loads from Landstar (origin, destination, pay, ETA)
+   - First 100 rows per state from JB Hunt
+3. Processes data via GPT summarization
+4. Persists results to PostgreSQL
 
-**Task:**
-
-* In **`automation-service`**, implement a script that:
-
-  1. Logs into a fictional two loadboard portals (https://www.jbhunt.com/loadboard/load-board/map and https://www.landstaronline.com/loadspublic)
-  2. Extracts the 20 most recent loads (origin, destination, price, ETA)
-  3. Sends the extracted data via HTTP POST to `gpt-service` at `/summarize-loads`
-* Implement retry/backoff logic on failure and expose Prometheus metrics (using `prom-client`).
-
-**Deliverables:**
-
-* TypeScript code (NestJS)
-* End-to-end tests with Jest + Supertest (mock external services)
-* A working `/metrics` endpoint
-
-**Evaluation Criteria:**
-
-* Robust error handling and retries
-* Observability with properly labeled metrics
-* Code quality and test coverage
+### Features
+Retry mechanism with exponential backoff  
+Prometheus metrics at `/metrics`  
+Prisma ORM integration  
 
 ---
 
-## 3. GPT Compute Preview Integration
+## 3. GPT Integration
+**Location:** `gpt-service`
 
-**Objective:** Use LLMs to generate insights from data.
+### Endpoint
+`POST /summarize-loads`
 
-**Task:**
+### Request example
+```json
+{
+    "CarrierData":
+    {
+        "pickupDateTime": "2025-06-11T10:00:00Z",
+        "deliveryDateTime": "2025-06-11T18:00:00Z",
+        "origin": "Dallas, TX",
+        "destination": "Atlanta, GA",
+        "carrierPay": 1300,
+        "miles": 780,
+        "weight": 30000,
+        "commodityCode": "FOOD",
+    }
+}
+```
+**Response Example:**
 
-* In **`gpt-service`**, implement a **`POST /summarize-loads`** endpoint that:
-
-  1. Receives an array of load objects
-  2. Dynamically constructs a prompt and calls the GPT Compute Preview API via the `openai` SDK
-  3. Extracts price trends and route optimization suggestions
-  4. Returns JSON:
-
-  ```json
-  {
-    "summary": "…",
-    "insights": ["…", "…"]
-  }
-  ```
-* Validate the request payload and handle OpenAI API quotas and errors.
-
-**Deliverables:**
-
-* TypeScript code (`openai@"^4.x"`)
-* API mocks for unit tests
-* Example requests and responses in the README
-
-**Evaluation Criteria:**
-
-* Clarity and effectiveness of the generated prompt
-* Error handling and fallback strategies
-* Test coverage ≥ 80%
-
----
+{ "summary": "Generated analysis of load patterns showing frequent routes between Texas and Georgia with average pay of $1,300 for 780-mile hauls." }
 
 ## 4. Database and Data Orchestration
 
-**Objective:** Assess data modeling, performance, and orchestration.
+**Used:** PostgreSQL + Prisma ORM
 
-**Task:**
+**Tables:**
+- `insights`
+- `carrier_info` 
+- `driver_info` (Just for example, because no driver data is shown up at both websites)
 
-* Add a PostgreSQL service via Docker Compose with tables:
+**Connection:**  
+Example:
+Defined in `automation-service/.env`
 
-  * `drivers`, `loads`, `summaries` (id, load\_id, summary\_text, created\_at)
-* In `automation-service`, after posting data to GPT, store the AI responses in `summaries`.
-* Create indexes for common queries and a materialized view joining `loads` and `summaries`.
-
-**Deliverables:**
-
-* `schema.sql` and migration scripts (TypeORM, Sequelize, or Knex)
-* SQL to create the materialized view
-* Example query for “Top 5 loads with best insights”
-
-**Evaluation Criteria:**
-
-* Correct relationships and data types
-* Effective use of materialized view and indexes
-* Idempotent migration scripts
+```env
+  DATABASE_URL="postgresql://postgres:root@localhost:5432/CarrierData"
+```
 
 ---
 
-## 5. CI/CD and Infrastructure as Code (Optional Bonus)
+## 5. Environment Configuration
 
-* **GitHub Actions:** Workflow for linting, testing, and building Docker images
-* **Terraform:** Infrastructure definition (ECS/Fargate, RDS)
-* **Kubernetes:** Manifests for Deployment, Service, and ConfigMap
+Each service requires a `.env` file at its root. These files store sensitive configuration values such as credentials and API keys.
+
+### `automation-service/.env`
+
+```env
+# PostgreSQL connection
+(example connection string)
+DATABASE_URL="postgresql://postgres:root@localhost:5432/CarrierData"
+
+# Loadboard credentials (used for browser automation)
+LANDSTAR_USERNAME="your_landstar_username"
+LANDSTAR_PASSWORD="your_landstar_password"
+
+```
+
+### `gpt-service/.env`
+```env
+# OpenAI API Key
+OPENAI_API_KEY="your_openai_api_key"
+
+```
+
+### `Folder Format Example`
+```env
+├── src/
+├── prisma/
+├── .env <-- Environment variables
+├── package.json
+├── tsconfig.json
+└── ...
+
+```
+
+## 6. Setup Instructions
+
+```bash 
+*Open bash in main folder*
+
+# Automation Service:
+cd automation-service
+npm install
+npx prisma migrate dev
+npm run start
+
+# GPT Service:
+cd ../gpt-service
+npm install
+npm run start
+```
+
 
 ---
 
-## 6. Documentation and Communication
+## 7. Simulated Post-Mortem
 
-**Task:**
+During development, the main challenges were handling unstable loadboard sites and maintaining Puppeteer stability across retries. Some selectors were inconsistent or dynamically injected, requiring custom wait logic. We also had to simulate some keyboard key-press like 'ENTER'. Its due to a specific scenario where the input doesn't accept just the writing and search-button press.
 
-* Document the entire setup (multi-service Docker, environment variables, tests) in the README.md
-* Write a simulated post-mortem (up to 300 words) in English, covering challenges, architectural decisions, and next steps
+On the GPT side, the challenge was API reliability and cost optimization. I implemented exponential backoff and a fallback response in case of failures. The prompt was tuned to ensure clear summaries.
 
----
+If extended, I would improve authentication, add Docker support, and implement CI/CD pipelines with GitHub Actions and Terraform for infrastructure automation.
 
-**Good luck!**
+For a distant future, I would recommend an heat-map visualization where we track all the collected and stored data with the insights, process it via LLM, and produce heatmaps for today, and a speculation heatmap for the future (like next month, semester and etc)
