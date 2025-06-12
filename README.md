@@ -130,16 +130,42 @@ cd ../gpt-service
 npm install
 npm run start
 ```
+## 7. Execution
+A cron job runs every minute to execute all registered automations automatically.
 
+### Key Behaviors:
+    Prevents overlapping runs using an isRunning lock.
+
+    Handles retry and logs errors for failed automations.
+
+    Sends extracted data to GPT for summarization.
+
+    Persists results into PostgreSQL using Prisma ORM.
+
+    Exposes Prometheus metrics for observability.
+
+### Automation flow:
+
+    Iterates over all registered automations.
+
+    Extracts carrier data.
+
+    Sends it to gpt-service at /summarize-loads.
+
+    Saves the summary and data into the database.
+
+    This ensures near real-time data extraction and insight generation.
 
 ---
 
-## 7. Simulated Post-Mortem
+## 8. Post-Mortem
 
-During development, the main challenges were handling unstable loadboard sites and maintaining Puppeteer stability across retries. Some selectors were inconsistent or dynamically injected, requiring custom wait logic. We also had to simulate some keyboard key-press like 'ENTER'. Its due to a specific scenario where the input doesn't accept just the writing and search-button press.
+During development, the main challenges included dealing with unstable loadboard websites and ensuring Puppeteer stability. Some selectors were inconsistent or dynamically loaded, requiring custom wait logic and keypress simulations (e.g., pressing 'ENTER' to trigger searches).
 
-On the GPT side, the challenge was API reliability and cost optimization. I implemented exponential backoff and a fallback response in case of failures. The prompt was tuned to ensure clear summaries.
+A major blocker was running Puppeteer reliably inside a Docker container. Despite multiple attempts, I couldn't achieve full browser execution in the container due to dependency and sandboxing issues. As a workaround, Puppeteer was run locally for stability.
 
-If extended, I would improve authentication, add Docker support, and implement CI/CD pipelines with GitHub Actions and Terraform for infrastructure automation.
+On the GPT side, reliability and cost were concerns. I implemented exponential backoff and a fallback response for API errors. The prompt was tuned to ensure consistent and useful summaries.
 
-For a distant future, I would recommend an heat-map visualization where we track all the collected and stored data with the insights, process it via LLM, and produce heatmaps for today, and a speculation heatmap for the future (like next month, semester and etc)
+If extended, I would improve authentication, fully containerize all services, and implement CI/CD with GitHub Actions and Terraform. Long-term, I suggest adding a heatmap dashboard that processes and visualizes collected data with LLM insights—showing both current trends and future projections.
+
+A great implementation would be a automation viewer panel to track executions and trigger manual runs when needed.
