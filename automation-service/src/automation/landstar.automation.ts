@@ -5,6 +5,7 @@ import {
 } from './model/automationReturnType.model';
 import { parse } from 'date-fns';
 import { clickSelectorAndAwaitLoad } from './common/automation-utils.common';
+import { shortenedStates } from './constants/automation-constants.constants';
 
 export async function run(): Promise<AutomationReturnTypeDto> {
 	let { page, browser } = await loginToLandstar();
@@ -64,8 +65,7 @@ async function loginToLandstar(): Promise<{ page: Page; browser: Browser }> {
 }
 
 async function navigateToCarrierInfoData(page: Page): Promise<Page> {
-	const regions =
-		'AK;CO;CA;ID;MT;NV;OR;UT;WA;WY;AZ;NM;OK;TX;IL;IN;IA;KS;MI;MN;MO;NE;ND;OH;SD;WI;AL;AR;FL;GA;KY;LA;MS;NC;SC;TN;VA;WV;DE;MD;NJ;NY;PA;DC;CT;ME;MA;NH;RI;VT;AB;BC;MB;NB;NF;NT;NS;NU;ON;PE;QC;SK;YT;';
+	const regions = shortenedStates.toString();
 
 	await page.goto('https://www.landstaronline.com/loads', {
 		waitUntil: 'networkidle0',
