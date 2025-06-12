@@ -42,18 +42,27 @@ export class ScraperService {
 			) {
 				this.logger.warn('One or more automations were unsuccessful.');
 			}
-			const summary = await this.sendToGpt(allData);
+			let summary = (await this.sendToGpt(allData)) ?? new SummaryResponseDto();
 			if (
 				!summary ||
 				!summary.summary ||
 				summary.summary.includes('Unable to generate summary due to API error')
 			) {
-				throw new Error('Invalid response from GPT. Summary is missing.');
+				this.logger.warn(
+					'Invalid or missing response from GPT. Summary is missing.',
+				);
 			}
 
 			const dto = new AutomationDataDto();
 			dto.data = allData.CarrierData;
-			dto.summary = summary;
+			if (!summary || !summary.summary) {
+				summary = new SummaryResponseDto();
+				summary.summary =
+					'No summary. An error occurred while generating the summary.';
+			}
+			dto.summary =
+				summary ??
+				'No summary. An error occurred while generating the summary.';
 
 			await this.saveToDatabase(dto);
 		} catch (err) {
@@ -99,9 +108,9 @@ export class ScraperService {
 		data: AutomationReturnTypeDto,
 	): Promise<SummaryResponseDto> {
 		try {
-			//'http://localhost:3000/summarize-loads',
+			//'http://gpt-service:3000/summarize-loads',
 			const response = await axios.post<SummaryResponseDto>(
-				'http://gpt-service:3000/summarize-loads',
+				'http://localhost:3000/summarize-loads',
 				data,
 			);
 			if (

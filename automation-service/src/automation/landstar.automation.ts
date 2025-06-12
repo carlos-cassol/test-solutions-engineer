@@ -24,6 +24,8 @@ export async function run(): Promise<AutomationReturnTypeDto> {
 //---------------------------------//
 
 async function loginToLandstar(): Promise<{ page: Page; browser: Browser }> {
+	const username = process.env.LANDSTAR_USERNAME;
+	const password = process.env.LANDSTAR_PASSWORD;
 	const browser = await puppeteer.launch({ headless: false });
 	const page = await browser.newPage();
 	const retries = 6;
@@ -35,9 +37,9 @@ async function loginToLandstar(): Promise<{ page: Page; browser: Browser }> {
 				timeout: 5000,
 			});
 
-			await page.type('#USER', 'cassol');
+			await page.type('#USER', username ?? 'cassol');
 
-			await page.type('#PASSWORD', '1Ba1ck@09c');
+			await page.type('#PASSWORD', password ?? 'CodeTest');
 
 			await new Promise((r) => setTimeout(r, 1000));
 

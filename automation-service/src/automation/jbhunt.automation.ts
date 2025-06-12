@@ -3,7 +3,7 @@ import {
 	AutomationReturnTypeDto,
 	CarrierDataRowDto,
 } from './model/automationReturnType.model';
-import { parse } from 'date-fns';
+import { isValid, parse } from 'date-fns';
 import { usaStates } from './constants/automation-constants.constants';
 
 //API URL alternative: https://scm.jbhunt.com/carrier/public/rest/loadboard/graphql/external
@@ -29,6 +29,11 @@ export async function run(): Promise<AutomationReturnTypeDto> {
 		if (browser) {
 			await browser.close();
 		}
+
+		if (table.CarrierData.length > 20) {
+			table.CarrierData = table.CarrierData.slice(0, 20);
+		}
+
 		return table;
 	}
 }
@@ -125,6 +130,10 @@ async function extractTableData(
 			'MMM d, yyyy h:mm a',
 			new Date(),
 		);
+
+		if (!isValid(pickupDateTime) || !isValid(deliveryDateTime)) {
+			continue;
+		}
 
 		const weightValue = weight?.replace(/./g, '') || '0';
 
