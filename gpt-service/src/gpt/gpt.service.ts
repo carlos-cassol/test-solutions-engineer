@@ -100,21 +100,4 @@ export class GptService {
 			)
 			.map((line) => line.replace(/^[-•]\s*/, '').trim());
 	}
-
-	// const mock = new SummaryResponseDto();
-
-	// mock.summary = `The load data reveals high activity on long-haul routes, particularly from the Southeast (e.g., Louisiana, Virginia, North Carolina) to destinations such as Texas, California, and Canada. Commodities like machinery (MACH) and consumer goods (CGAPP) dominate, with occasional government shipments (GOVT). Repeated loads between LAREDO, TX and GENEVA, NY and multiple entries from SHIPPENSBURG, PA to NATL CY, CA suggest strategic lanes. Pay ranges from $4,500 to $10,000, with some high-weight loads over 160,000 lbs.
-
-	// Long-distance shipments (2,000+ miles) with medium-to-high weight dominate the dataset. The average pay-per-mile tends to be higher in short regional loads (e.g., VIRGINIA BCH to WARRENTON, VA), although high-paying long hauls still appear viable due to volume and commodity type.
-
-	// Activity clusters appear in the Midwest and Southeast as pickup zones, with concentrated delivery patterns toward the West and Northeast.`;
-	// mock.insights = [
-	// 	'Heavy concentration of MACH and CGAPP commodities across long-haul lanes',
-	// 	'LAREDO, TX to GENEVA, NY appears as a repeated and stable route',
-	// 	'SHIPPENSBURG, PA to NATL CY, CA shows operational recurrence — worth monitoring',
-	// 	'Loads originating from JEFFERSON and NEW ORLEANS to HIDALGO indicate high regional activity',
-	// 	'Short hauls within VA present high $/mile opportunities but limited volume',
-	// 	'Consistent deliveries to Texas and California suggest growing demand or strategic hubs',
-	// ];
-	// return mock;
 }

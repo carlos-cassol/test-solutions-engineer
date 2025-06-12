@@ -48,9 +48,7 @@ export class ScraperService {
 				!summary.summary ||
 				summary.summary.includes('Unable to generate summary due to API error')
 			) {
-				throw new error(
-					'Invalid response from GPT. Summary or insights are missing.',
-				);
+				throw new Error('Invalid response from GPT. Summary is missing.');
 			}
 
 			const dto = new AutomationDataDto();
@@ -101,8 +99,9 @@ export class ScraperService {
 		data: AutomationReturnTypeDto,
 	): Promise<SummaryResponseDto> {
 		try {
+			//'http://localhost:3000/summarize-loads',
 			const response = await axios.post<SummaryResponseDto>(
-				'http://localhost:3000/summarize-loads',
+				'http://gpt-service:3000/summarize-loads',
 				data,
 			);
 			if (

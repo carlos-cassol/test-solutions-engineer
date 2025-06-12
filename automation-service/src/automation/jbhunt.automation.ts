@@ -10,14 +10,27 @@ import { usaStates } from './constants/automation-constants.constants';
 //Faster. If does not work, then use the automation.
 
 export async function run(): Promise<AutomationReturnTypeDto> {
-	let { page, browser } = await accessJbHunt();
-	const result = await searchCarriersByState(page);
-	page = result.page;
-	const table = result.table;
-	if (table.CarrierData.length === 0) table.AutomationExecutionSuccess = false;
-	await browser.close();
-
-	return table;
+	let table = new AutomationReturnTypeDto();
+	let page: Page;
+	let browser: Browser | undefined;
+	try {
+		let loginResult = await accessJbHunt();
+		page = loginResult.page;
+		browser = loginResult.browser;
+		const result = await searchCarriersByState(page);
+		page = result.page;
+		table = result.table;
+		if (table.CarrierData.length === 0)
+			table.AutomationExecutionSuccess = false;
+	} catch {
+		this.logger.warn('An error occurred while running J.B. Hunt automation.');
+		table.AutomationExecutionSuccess = false;
+	} finally {
+		if (browser) {
+			await browser.close();
+		}
+		return table;
+	}
 }
 
 async function searchCarriersByState(
@@ -34,11 +47,11 @@ async function searchCarriersByState(
 		}, inputSelector);
 
 		await page.type(inputSelector, state);
-		await new Promise((r) => setTimeout(r, 1150));
+		await new Promise((r) => setTimeout(r, 1350));
 
 		await page.keyboard.press('Enter');
 
-		await new Promise((r) => setTimeout(r, 800));
+		await new Promise((r) => setTimeout(r, 1000));
 		await waitUntilSpinnerDisappears(
 			page,
 			'body > app-root > div > app-load-board > div > ucl-loading-spinner',
@@ -62,9 +75,6 @@ async function searchCarriersByState(
 
 		const extractedData = await extractTableData(rows);
 		carrierDataTable.CarrierData.push(...extractedData.CarrierData);
-		console.log(
-			`existe informação no site para o estado e essa quantidade de linhas: ${rows.length} para o estado ${state}`,
-		);
 	}
 
 	return { page, table: carrierDataTable };
@@ -166,7 +176,7 @@ async function accessJbHunt(): Promise<{ page: Page; browser: Browser }> {
 				},
 			);
 
-			await new Promise((r) => setTimeout(r, 1000));
+			await new Promise((r) => setTimeout(r, 4000));
 
 			return { page, browser };
 		} catch (err) {
