@@ -5,8 +5,8 @@
 ### Service Structure
 | Service               | Description                                  | Port  |
 |-----------------------|----------------------------------------------|-------|
-| `automation-service`  | Browser automation & data extraction         | 3000  |
-| `gpt-service`         | OpenAI GPT summarization endpoint            | 3001  |
+| `automation-service`  | Browser automation & data extraction         | 3001  |
+| `gpt-service`         | OpenAI GPT summarization endpoint            | 3000  |
 
 **Communication:** HTTP POST requests between services.
 
