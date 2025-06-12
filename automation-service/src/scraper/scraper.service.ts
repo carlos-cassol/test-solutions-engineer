@@ -72,8 +72,7 @@ export class ScraperService {
 			try {
 				const endTimer = this.metricsService.startJobTimer(name);
 
-				//Focusing only on puppeteer.
-				//Add logic to try using endpoints from websites. If it fails, then use the automation.
+				//Suggestion to a real scenario: Try by endpoints. If it fails, try by automation.
 				const data = await automation.run();
 				endTimer();
 
